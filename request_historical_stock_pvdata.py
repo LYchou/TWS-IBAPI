@@ -139,11 +139,12 @@ if __name__ == '__main__':
     clientId = 0
     symbol = 'TSM'
     duration = '1 M' #'1 Y'
+    bar_size = '1 day'
     end_date = '20240719'
 
     app = App()
     app.connect('127.0.0.1', port, clientId)
     time.sleep(0.5)  # Give time for connection to be established
     app.start()
-    app.request_historical_data(symbol, f'{20240719} 17:00:00 US/Eastern', duration)
+    app.request_historical_data(symbol, f'{end_date} 17:00:00 US/Eastern', duration, bar_size)
     app.stop()
