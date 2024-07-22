@@ -35,6 +35,96 @@
 
 `App` 類別通過多重繼承同時繼承了 `EWrapper` 和 `EClient` 類別，因此它可以同時擁有這兩個類別的功能。這使得 `App` 類別能夠同時處理請求和回應，實現與 TWS 的雙向通信。
 
+### 異步處理
+
+在這個程式中，`EClient` 和 `EWrapper` 類別的設計是基於異步處理的。異步處理允許在連接建立後，程式可以繼續執行其他操作而不需要等待所有回應。當 TWS 回應或發生事件時，`EWrapper` 定義的回調方法會被自動調用，這樣可以在不阻塞主線程的情況下處理回應和事件。這種方式使得程式能夠同時處理多個請求和回應，提高了程式的效率和響應速度。
+
+## 多個程式的延伸與功能
+
+以下是基於 `App` 類別的多重繼承和異步處理的不同功能。不同的需求會發出不同的請求並調用相應的回應函數。
+
+### **確認連接 (`check_connect`)**
+
+- **說明功能**：
+  - 確認是否與 Interactive Brokers' Trader Workstation (TWS) 正常連接。
+
+- **請求函數**：
+  - 無需額外請求函數，使用 `isConnected()` 方法來檢查連接狀態。
+
+- **回應函數**：
+  - 無特定回應函數，僅依賴 `isConnected()` 的返回值來判斷連接狀態。
+
+### **下單 (`place_order`)**
+
+- **說明功能**：
+  - 通過 `IBApi.EClient.placeOrder` 方法提交訂單。
+
+- **請求函數**：
+  - `IBApi.EClient.placeOrder`：用於提交訂單。
+
+- **回應函數**：
+  - 無特定回應函數，訂單狀態將通過其他回應函數處理，例如 `orderStatus`。
+
+### **請求開放訂單 (`request_open_order`)**
+
+- **說明功能**：
+  - 獲取通過 TWS API 創建的所有開放訂單，不論是由哪個客戶端應用程序提交的。
+
+- **請求函數**：
+  - `IBApi.EClient.reqAllOpenOrders`：用於請求所有開放訂單。
+
+- **回應函數**：
+  - `IBApi.EWrapper.openOrder`：當開放訂單信息返回時被調用。
+  - `IBApi.EWrapper.orderStatus`：當訂單狀態更新時被調用。
+
+### **請求帳戶摘要 (`request_account_summary`)**
+
+- **說明功能**：
+  - 創建一個訂閱，用於獲取在 TWS 帳戶摘要窗口中顯示的帳戶數據。
+
+- **請求函數**：
+  - `IBApi.EClient.reqAccountSummary`：用於請求帳戶摘要。
+
+- **回應函數**：
+  - `IBApi.EWrapper.accountSummary`：當帳戶摘要數據返回時被調用。
+  - `IBApi.EWrapper.accountSummaryEnd`：當帳戶摘要請求結束時被調用。
+
+### **請求帳戶更新 (`request_account_updates`)**
+
+- **說明功能**：
+  - 創建一個訂閱，用於從 TWS 獲取帳戶和投資組合信息，這些信息與 TWS 的帳戶窗口中顯示的完全一致。
+
+- **請求函數**：
+  - `IBApi.EClient.reqAccountUpdates`：用於請求帳戶更新。
+
+- **回應函數**：
+  - `IBApi.EWrapper.accountUpdate`：當帳戶信息更新時被調用（具體回應函數取決於具體實現）。
+
+### **請求回調 (`request_callback`)**
+
+- **說明功能**：
+  - 當訂單被完全或部分執行時，通過 `IBApi.EWrapper.execDetails` 和 `IBApi.EWrapper.commissionReport` 事件傳遞 `IBApi.Execution` 和 `IBApi.CommissionReport` 對象。
+  - 可以通過 `IBApi.EClient.reqExecutions` 方法按需請求 `IBApi.Execution` 和 `IBApi.CommissionReport` 對象，並通過 `IBApi.ExecutionFilter` 對象過濾結果。傳遞空的 `IBApi.ExecutionFilter` 對象以獲取所有過去的執行記錄。
+
+- **請求函數**：
+  - `IBApi.EClient.reqExecutions`：用於請求執行詳細信息。
+
+- **回應函數**：
+  - `IBApi.EWrapper.execDetails`：當執行細節返回時被調用。
+  - `IBApi.EWrapper.commissionReport`：當佣金報告返回時被調用。
+
+### **請求全局取消訂單 (`request_global_cancel_order`)**
+
+- **說明功能**：
+  - 取消所有開放的訂單，不論這些訂單最初是如何提交的。
+
+- **請求函數**：
+  - `IBApi.EClient.reqGlobalCancel`：用於請求全局取消所有訂單。
+
+- **回應函數**：
+  - 無特定回應函數，所有訂單的取消操作通常會由 `orderStatus` 函數處理。
+
+
 ## 連接參數說明
 
 - **port**：
@@ -100,11 +190,7 @@ def main():
    - 等待一段時間以確保連接建立成功。
    - 斷開與 TWS 的連接。
 
-### 異步處理
 
-在這個程式中，`EClient` 和 `EWrapper` 類別的設計是基於異步處理的。異步處理允許在連接建立後，程式可以繼續執行其他操作而不需要等待所有回應。當 TWS 回應或發生事件時，`EWrapper` 定義的回調方法會被自動調用，這樣可以在不阻塞主線程的情況下處理回應和事件。這種方式使得程式能夠同時處理多個請求和回應，提高了程式的效率和響應速度。
-
-這個程式碼示例展示了如何建立和斷開與 TWS 的連接。透過 `EClient` 和 `EWrapper` 的結合，`App` 類別能夠有效地處理與 TWS 的通信和回應。
 
 
 
