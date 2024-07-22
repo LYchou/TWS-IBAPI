@@ -1,73 +1,78 @@
-## 概述
+Here's the translation of the provided text into English, formatted using Markdown syntax:
 
-這個程式的主要目的是建立與 Interactive Brokers' Trader Workstation (TWS) 的連接，以便進行自動化的交易操作。程式通過 `EClient` 和 `EWrapper` 類別來建立和處理與 TWS 的連接，實現雙向通信。
+---
+
+## Overview
+
+The purpose of this program is to establish a connection with Interactive Brokers' Trader Workstation (TWS) to perform automated trading operations. The program uses the `EClient` and `EWrapper` classes to establish and handle communication with TWS, enabling bidirectional communication.
 
 ## EClient
 
-`EClient`（Client API）是與 TWS 或 IB Gateway 進行通信的客戶端。它負責發送請求並處理與 TWS 的連接相關的功能。
+`EClient` (Client API) is the client responsible for communicating with TWS or IB Gateway. It handles sending requests and managing connection-related functions.
 
-### 主要功能
+### Main Functions
 
-- **建立連接**：
-  - `connect(host, port, clientId)`：用於與 TWS 或 IB Gateway 建立連接。`host` 是 TWS 或 IB Gateway 的 IP 地址，`port` 是連接端口，`clientId` 是唯一的客戶端 ID。
+- **Establish Connection**:
+  - `connect(host, port, clientId)`: Used to establish a connection with TWS or IB Gateway. `host` is the IP address of TWS or IB Gateway, `port` is the connection port, and `clientId` is a unique client ID.
 
-- **發送請求**：
-  - 向 TWS 發送各種請求，如訂閱市場數據、請求合約信息、提交訂單等。
-  - 例如：`reqMktData(reqId, contract, genericTickList, snapshot, regulatorySnapshot, mktDataOptions)`：用於訂閱市場數據，其中 `reqId` 是請求的唯一標識符，`contract` 是合約對象。
+- **Send Requests**:
+  - Sends various requests to TWS, such as subscribing to market data, requesting contract information, placing orders, etc.
+  - For example: `reqMktData(reqId, contract, genericTickList, snapshot, regulatorySnapshot, mktDataOptions)`: Used to subscribe to market data, where `reqId` is a unique identifier for the request and `contract` is the contract object.
 
-- **處理通信**：
-  - 負責低層次的通信處理，如打包和發送數據。確保數據能夠準確地發送到 TWS 並接收回應。
+- **Handle Communication**:
+  - Manages low-level communication tasks such as packing and sending data. Ensures that data is accurately sent to TWS and responses are received.
 
 ## EWrapper
 
-`EWrapper`（Wrapper API）用來處理來自 TWS 的回應和事件。它定義了一組回調方法，這些方法會在收到相應的事件或數據時自動調用。
+`EWrapper` (Wrapper API) is used to handle responses and events from TWS. It defines a set of callback methods that are automatically invoked when corresponding events or data are received.
 
-### 主要功能
+### Main Functions
 
-- **處理回應和事件**：
-  - 定義各種回調方法來處理 TWS 返回的數據和事件。例如，市場數據更新、訂單狀態更新、錯誤消息等。
-  - 例如：`tickPrice(reqId, tickType, price, attrib)`：當市場價格更新時被調用，`reqId` 用於識別請求，`tickType` 表示數據類型，`price` 是更新的價格，`attrib` 是附加屬性。
+- **Handle Responses and Events**:
+  - Defines various callback methods to handle data and events returned by TWS, such as market data updates, order status updates, and error messages.
+  - For example: `tickPrice(reqId, tickType, price, attrib)`: Called when market prices update, where `reqId` is used to identify the request, `tickType` indicates the data type, `price` is the updated price, and `attrib` contains additional attributes.
 
-- **數據解析**：
-  - 解析來自 TWS 的數據並將其傳遞給應用程序。處理數據後，可以用於進一步的分析或操作。
+- **Data Parsing**:
+  - Parses data from TWS and passes it to the application. After processing, the data can be used for further analysis or operations.
 
-## 多重繼承、異步處理與事件循環
+## Multiple Inheritance, Asynchronous Processing, and Event Loop
 
-### 多重繼承
+### Multiple Inheritance
 
-`App` 類別通過多重繼承同時繼承了 `EWrapper` 和 `EClient` 類別，因此它可以同時擁有這兩個類別的功能。這使得 `App` 類別能夠同時處理請求和回應，實現與 TWS 的雙向通信。
+The `App` class inherits both `EWrapper` and `EClient` classes through multiple inheritance, allowing it to have the functionalities of both classes. This enables the `App` class to handle requests and responses simultaneously, achieving bidirectional communication with TWS.
 
-### 異步處理
+### Asynchronous Processing
 
-在這個程式中，`EClient` 和 `EWrapper` 類別的設計基於異步處理的原則。這種設計允許程式在建立與 TWS 的連接後，能夠繼續執行其他操作，而不需要等待所有回應完成。當 TWS 回應或發生事件時，`EWrapper` 中定義的回調方法會自動被調用，這樣可以在不阻塞主線程的情況下處理回應和事件。這種方式使得程式能夠同時處理多個請求和回應，提高了程式的效率和響應速度。
+The design of `EClient` and `EWrapper` classes is based on asynchronous processing principles. This design allows the program to continue performing other operations after establishing a connection with TWS, without waiting for all responses to complete. When TWS responds or an event occurs, the callback methods defined in `EWrapper` are automatically invoked, allowing the program to handle responses and events without blocking the main thread. This approach enables the program to handle multiple requests and responses concurrently, improving efficiency and responsiveness.
 
-### 事件循環
+### Event Loop
 
-事件循環是一種編程模型，用於管理異步操作和事件處理。在這種模型中，程式會持續運行一個循環，等待並處理事件或回調函數。在 `EClient` 和 `EWrapper` 的上下文中，事件循環的主要作用是處理來自 TWS 的回應和事件。當 TWS 返回數據或發生事件時，事件循環會將這些事件放入事件隊列中。`EWrapper` 類別中的回調方法會根據事件循環的調用來處理這些回應和事件，確保程式在處理長時間運行的操作（如等待市場數據或訂單狀態更新）時，仍能即時響應其他事件或操作。
+An event loop is a programming model used to manage asynchronous operations and event handling. In this model, the program continuously runs a loop to wait for and handle events or callback functions. In the context of `EClient` and `EWrapper`, the main role of the event loop is to process responses and events from TWS. When TWS returns data or an event occurs, the event loop places these events in an event queue. The callback methods in `EWrapper` handle these responses and events based on the event loop's invocation, ensuring that the program can respond to other events or operations promptly while handling long-running operations (such as waiting for market data or order status updates).
 
-### 運作邏輯
+### Operational Logic
 
-1. **建立連接**：`EClient` 通過 `connect()` 方法與 TWS 建立連接。連接建立後，程式不會被阻塞，可以繼續執行其他操作。
+1. **Establish Connection**: `EClient` establishes a connection with TWS via the `connect()` method. After the connection is established, the program is not blocked and can continue executing other tasks.
 
-2. **發送請求**：請求（如訂閱市場數據、提交訂單）由 `EClient` 發送。這些請求會被異步處理，程式可以在等待回應的同時繼續執行其他任務。
+2. **Send Requests**: Requests (such as subscribing to market data or placing orders) are sent by `EClient`. These requests are handled asynchronously, allowing the program to continue executing other tasks while waiting for responses.
 
-3. **處理回應和事件**：當 TWS 返回數據或發生事件時，這些回應和事件會被放入事件隊列中。`EWrapper` 的回調方法會根據事件循環的調用來處理這些回應和事件，實現非阻塞的異步處理。
+3. **Handle Responses and Events**: When TWS returns data or an event occurs, these responses and events are placed in the event queue. The callback methods in `EWrapper` handle these responses and events based on the event loop's invocation, enabling non-blocking asynchronous processing.
 
-這種異步處理和事件循環的結合確保了程式在進行自動化交易操作時，能夠高效且即時地處理各種請求和回應，提高了交易系統的靈活性和穩定性。
-## 連接參數說明
+This combination of asynchronous processing and event loop ensures that the program can efficiently and promptly handle various requests and responses during automated trading operations, enhancing the flexibility and stability of the trading system.
 
-- **port**：
-  - 連接端口號。`port` 是 TWS 或 IB Gateway 的通信端口，默認值通常是 7497（TWS 的紙上交易端口）或 7496（實盤交易端口）。正確的端口號確保了客戶端能夠正確連接到 TWS 或 IB Gateway。
+## Connection Parameters
 
-- **clientId**：
-  - 客戶端 ID。`clientId` 是用於識別不同客戶端連接的唯一標識符。每個連接必須有一個唯一的 `clientId`，以避免與其他連接的衝突。在同一個 TWS 實例中，不能有兩個客戶端使用相同的 `clientId`。
-  - **功能**：
-    - `clientId` 允許 TWS 確定並管理不同客戶端的連接，這對於多個交易系統或交易員來說尤其重要。
-    - 這個功能使得不同涉略和不同交易員可以通過獨特的 `clientId` 識別和管理各自的訂單和操作，確保每個交易的獨立性和準確性。
+- **port**:
+  - The connection port number. `port` is the communication port for TWS or IB Gateway. The default values are usually 7497 (TWS paper trading port) or 7496 (live trading port). The correct port number ensures that the client can connect to TWS or IB Gateway properly.
 
-## 程式碼示例
+- **clientId**:
+  - The client ID. `clientId` is a unique identifier for distinguishing different client connections. Each connection must have a unique `clientId` to avoid conflicts with other connections. In the same TWS instance, two clients cannot use the same `clientId`.
+  - **Function**:
+    - `clientId` allows TWS to identify and manage different client connections, which is especially important for multiple trading systems or traders.
+    - This feature allows different strategies and traders to manage their orders and operations through unique `clientId`s, ensuring the independence and accuracy of each trade.
 
-以下是建立與 TWS 連接並斷開連接的程式碼示例：
+## Code Example
+
+Below is a code example to establish and disconnect from a TWS connection:
 
 ```python
 import time
@@ -104,102 +109,77 @@ def main():
     app.disconnect()
 ```
 
-### 程式碼解析
+### Code Explanation
 
-1. **導入庫**：
-   - 導入 `time`、`EClient` 和 `EWrapper` 類。
+1. **Import Libraries**:
+   - Import `time`, `EClient`, and `EWrapper` classes.
 
-2. **定義 `App` 類別**：
-   - `App` 類別繼承了 `EWrapper` 和 `EClient`，並在 `__init__` 方法中初始化了 `EClient`。
+2. **Define `App` Class**:
+   - The `App` class inherits from `EWrapper` and `EClient`, and initializes `EClient` in its `__init__` method.
 
-3. **主函數 `main`**：
-   - 定義了連接參數，包括端口和客戶端 ID。
-   - 創建 `App` 類別的實例，並與 TWS 進行連接。
-   - 等待一段時間以確保連接建立成功。
-   - 斷開與 TWS 的連接。
+3. **Main Function `main`**:
+   - Defines connection parameters, including port and client ID.
+   - Creates an instance of the `App` class and connects to TWS.
+   - Waits briefly to ensure the connection is established.
+   - Disconnects from TWS.
 
+## Extensions and Functions of Multiple Programs
 
-## 多個程式的延伸與功能
+Here are different functionalities based on the `App` class's multiple inheritance and asynchronous processing. Different needs will issue different requests and call the corresponding response functions.
 
-以下是基於 `App` 類別的多重繼承和異步處理的不同功能。不同的需求會發出不同的請求並調用相應的回應函數。
+### **Check Connection (`check_connect`)**
 
-### **確認連接 (`check_connect`)**
+- **Function Description**:
+  - Verifies whether the connection to Interactive Brokers' Trader Workstation (TWS) is active.
 
-- **說明功能**：
-  - 確認是否與 Interactive Brokers' Trader Workstation (TWS) 正常連接。
+- **Request Function**:
+  - No additional request function required; use the `isConnected()` method to check connection status.
 
-- **請求函數**：
-  - 無需額外請求函數，使用 `isConnected()` 方法來檢查連接狀態。
+- **Response Function**:
+  - No specific response function; rely on the return value of `isConnected()` to determine connection status.
 
-- **回應函數**：
-  - 無特定回應函數，僅依賴 `isConnected()` 的返回值來判斷連接狀態。
+### **Place Order (`place_order`)**
 
-### **下單 (`place_order`)**
+- **Function Description**:
+  - Submit orders via the `IBApi.EClient.placeOrder` method.
 
-- **說明功能**：
-  - 通過 `IBApi.EClient.placeOrder` 方法提交訂單。
+- **Request Function**:
+  - `IBApi.EClient.placeOrder`: Used to submit orders.
 
-- **請求函數**：
-  - `IBApi.EClient.placeOrder`：用於提交訂單。
+- **Response Function**:
+  - No specific response function; order status will be handled by other response functions, such as `orderStatus`.
 
-- **回應函數**：
-  - 無特定回應函數，訂單狀態將通過其他回應函數處理，例如 `orderStatus`。
+### **Request Open Orders (`request_open_order`)**
 
-### **請求開放訂單 (`request_open_order`)**
+- **Function Description**:
+  - Retrieve all open orders created through the TWS API, regardless of which client application submitted them.
 
-- **說明功能**：
-  - 獲取通過 TWS API 創建的所有開放訂單，不論是由哪個客戶端應用程序提交的。
+- **Request Function**:
+  - `IBApi.EClient.reqAllOpenOrders`: Used to request all open orders.
 
-- **請求函數**：
-  - `IBApi.EClient.reqAllOpenOrders`：用於請求所有開放訂單。
+- **Response Function**:
+  - `IBApi.EWrapper.openOrder`: Called when open order information is returned.
+  - `IBApi.EWrapper.orderStatus`: Called when order status updates.
 
-- **回應函數**：
-  - `IBApi.EWrapper.openOrder`：當開放訂單信息返回時被調用。
-  - `IBApi.EWrapper.orderStatus`：當訂單狀態更新時被調用。
+### **Request Account Summary (`request_account_summary`)**
 
-### **請求帳戶摘要 (`request_account_summary`)**
+- **Function Description**:
+  - Create a subscription to receive account data displayed in the TWS account summary window.
 
-- **說明功能**：
-  - 創建一個訂閱，用於獲取在 TWS 帳戶摘要窗口中顯示的帳戶數據。
+- **Request Function**:
+  - `IBApi.EClient.reqAccountSummary`: Used to request account summary.
 
-- **請求函數**：
-  - `IBApi.EClient.reqAccountSummary`：用於請求帳戶摘要。
+- **Response Function**:
+  - `IBApi.EWrapper.accountSummary`: Called when account summary data is returned.
+  - `IBApi.EWrapper.accountSummaryEnd`: Called when account summary request ends.
 
-- **回應函數**：
-  - `IBApi.EWrapper.accountSummary`：當帳戶摘要數據返回時被調用。
-  - `IBApi.EWrapper.accountSummaryEnd`：當帳戶摘要請求結束時被調用。
+### **Request Account Updates (`request_account_updates`)**
 
-### **請求帳戶更新 (`request_account_updates`)**
+- **Function Description**:
+  - Create a subscription to receive account and portfolio information from TWS, consistent with what is shown in the TWS account window.
 
-- **說明功能**：
-  - 創建一個訂閱，用於從 TWS 獲取帳戶和投資組合信息，這些信息與 TWS 的帳戶窗口中顯示的完全一致。
+- **Request Function**:
+  - `IBApi.EClient.reqAccountUpdates`: Used to request account updates.
 
-- **請求函數**：
-  - `IBApi.EClient.reqAccountUpdates`：用於請求帳戶更新。
-
-- **回應函數**：
-  - `IBApi.EWrapper.accountUpdate`：當帳戶信息更新時被調用（具體回應函數取決於具體實現）。
-
-### **請求回調 (`request_callback`)**
-
-- **說明功能**：
-  - 當訂單被完全或部分執行時，通過 `IBApi.EWrapper.execDetails` 和 `IBApi.EWrapper.commissionReport` 事件傳遞 `IBApi.Execution` 和 `IBApi.CommissionReport` 對象。
-  - 可以通過 `IBApi.EClient.reqExecutions` 方法按需請求 `IBApi.Execution` 和 `IBApi.CommissionReport` 對象，並通過 `IBApi.ExecutionFilter` 對象過濾結果。傳遞空的 `IBApi.ExecutionFilter` 對象以獲取所有過去的執行記錄。
-
-- **請求函數**：
-  - `IBApi.EClient.reqExecutions`：用於請求執行詳細信息。
-
-- **回應函數**：
-  - `IBApi.EWrapper.execDetails`：當執行細節返回時被調用。
-  - `IBApi.EWrapper.commissionReport`：當佣金報告返回時被調用。
-
-### **請求全局取消訂單 (`request_global_cancel_order`)**
-
-- **說明功能**：
-  - 取消所有開放的訂單，不論這些訂單最初是如何提交的。
-
-- **請求函數**：
-  - `IBApi.EClient.reqGlobalCancel`：用於請求全局取消所有訂單。
-
-- **回應函數**：
-  - 無特定回應函數，所有訂單的取消操作通常會由 `orderStatus` 函數處理。
+- **Response Function**:
+  - `IBApi.EWrapper.account
