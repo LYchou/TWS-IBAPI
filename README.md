@@ -1,7 +1,3 @@
-Here's the translation of the provided text into English, formatted using Markdown syntax:
-
----
-
 ## Overview
 
 The purpose of this program is to establish a connection with Interactive Brokers' Trader Workstation (TWS) to perform automated trading operations. The program uses the `EClient` and `EWrapper` classes to establish and handle communication with TWS, enabling bidirectional communication.
