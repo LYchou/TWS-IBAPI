@@ -1,3 +1,103 @@
+以下是整理和擴寫後的 Markdown 文檔，邏輯更加通順並優化了描述：
+
+```markdown
+## 目的
+
+這個程式的主要目的是建立與 Interactive Brokers' Trader Workstation (TWS) 的連接，以便進行自動化的交易操作。程式通過 `EClient` 和 `EWrapper` 類別來建立和處理與 TWS 的連接，實現與 TWS 的雙向通信。
+
+## EClient
+
+`EClient`（Client API）是與 TWS（Trader Workstation）或 IB Gateway 進行通信的客戶端。它負責發送請求給 TWS 並處理與 TWS 的連接相關的功能。
+
+### 主要功能
+
+- **建立連接**：
+  - `connect(host, port, clientId)`：用於與 TWS 或 IB Gateway 建立連接，`host` 是 TWS 或 IB Gateway 的 IP 地址，`port` 是連接端口，`clientId` 是唯一的客戶端 ID。
+
+- **發送請求**：
+  - 向 TWS 發送各種請求，如訂閱市場數據、請求合約信息、提交訂單等。
+  - 例如：`reqMktData(reqId, contract, genericTickList, snapshot, regulatorySnapshot, mktDataOptions)`：用於訂閱市場數據，其中 `reqId` 是請求的唯一標識符，`contract` 是合約對象。
+
+- **處理通信**：
+  - 負責低層次的通信處理，如打包和發送數據。確保數據能夠準確地發送到 TWS 並接收回應。
+
+## EWrapper
+
+`EWrapper`（Wrapper API）是用來處理來自 TWS 的回應和事件的。它定義了一組回調方法，這些方法會在收到相應的事件或數據時被自動調用。
+
+### 主要功能
+
+- **處理回應和事件**：
+  - 定義各種回調方法來處理 TWS 返回的數據和事件。例如，市場數據更新、訂單狀態更新、錯誤消息等。
+  - 例如：`tickPrice(reqId, tickType, price, attrib)`：當市場價格更新時被調用，`reqId` 用於識別請求，`tickType` 表示數據類型，`price` 是更新的價格，`attrib` 是附加屬性。
+
+- **數據解析**：
+  - 解析來自 TWS 的數據並將其傳遞給應用程序。處理數據後，可以用於進一步的分析或操作。
+
+## 多重繼承
+
+`App` 類別通過多重繼承同時繼承了 `EWrapper` 和 `EClient` 類別，因此它可以同時擁有這兩個類別的功能。這使得 `App` 類別能夠同時處理請求和回應，實現與 TWS 的雙向通信。
+
+## 程式碼示例
+
+以下是建立與 TWS 連接並斷開連接的程式碼示例：
+
+```python
+import time
+from ibapi.client import EClient
+from ibapi.wrapper import EWrapper
+
+class App(EWrapper, EClient):
+    """
+    This class combines the functionalities of EWrapper and EClient
+    to create a connection with Interactive Brokers' Trader Workstation (TWS).
+    """
+    def __init__(self):
+        """
+        Initializes the EClient part of the instance. The EWrapper part is
+        initialized implicitly by inheriting from EWrapper.
+        """
+        EClient.__init__(self, self)
+
+def main():
+    # Define connection parameters
+    port = 7497  # Port for TWS paper trading
+    clientId = 0  # Unique client ID for this connection
+
+    # Create an instance of the App class
+    app = App()
+    
+    # Connect to TWS
+    app.connect('127.0.0.1', port, clientId)
+    
+    # Wait briefly to ensure connection is established
+    time.sleep(0.5)
+    
+    # Disconnect from TWS
+    app.disconnect()
+```
+
+### 程式碼解析
+
+1. **導入庫**：
+   - 導入 `time`、`EClient` 和 `EWrapper` 類。
+
+2. **定義 `App` 類別**：
+   - `App` 類別繼承了 `EWrapper` 和 `EClient`，並在 `__init__` 方法中初始化了 `EClient`。
+
+3. **主函數 `main`**：
+   - 定義了連接參數，包括端口和客戶端 ID。
+   - 創建 `App` 類別的實例，並與 TWS 進行連接。
+   - 等待一段時間以確保連接建立成功。
+   - 斷開與 TWS 的連接。
+
+這個程式碼示例展示了如何建立和斷開與 TWS 的連接。透過 `EClient` 和 `EWrapper` 的結合，`App` 類別能夠有效地處理與 TWS 的通信和回應。
+```
+
+這樣的 Markdown 語法提供了一個結構清晰且詳細的說明，幫助理解程式的功能和運作邏輯。
+
+
+
 ### 簡易說明 - place_order
 
 #### 1. 在做什麼？
