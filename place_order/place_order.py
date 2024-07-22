@@ -7,6 +7,8 @@ from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from ibapi.order import Order
 
+from algotrade import AlgoOrderFiller
+
 class App(EWrapper, EClient):
     """
     Main application class for interacting with the Interactive Brokers API.
@@ -110,7 +112,9 @@ def get_orders() -> list:
     """
     # Example order data
     ACCOUNT = 'YOUR ACCOUNT'
-    ACCOUNT = 'DU9386885'
+    ALGO = ''
+
+    algoOrderFiller = AlgoOrderFiller()
 
     orderInfo_list = [
         {
@@ -154,6 +158,7 @@ def get_orders() -> list:
         order.totalQuantity = orderInfo['TotalQuantity']
         order.orderType = ORDERTYPE
         order.lmtPrice = LMTPRICE
+        order = algoOrderFiller.fill_algo_params(order, ALGO)
 
         order_contract_pair_list.append((contract, order))
 
