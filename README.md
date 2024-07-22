@@ -1,6 +1,4 @@
-以下是整理和擴寫後的 Markdown 文檔，邏輯更加通順並優化了描述：
 
-```markdown
 ## 目的
 
 這個程式的主要目的是建立與 Interactive Brokers' Trader Workstation (TWS) 的連接，以便進行自動化的交易操作。程式通過 `EClient` 和 `EWrapper` 類別來建立和處理與 TWS 的連接，實現與 TWS 的雙向通信。
@@ -92,11 +90,6 @@ def main():
    - 斷開與 TWS 的連接。
 
 這個程式碼示例展示了如何建立和斷開與 TWS 的連接。透過 `EClient` 和 `EWrapper` 的結合，`App` 類別能夠有效地處理與 TWS 的通信和回應。
-```
-
-這樣的 Markdown 語法提供了一個結構清晰且詳細的說明，幫助理解程式的功能和運作邏輯。
-
-
 
 ### 簡易說明 - place_order
 
